@@ -126,7 +126,7 @@ class BlobClient
     /**
      * @var string
      */
-    protected $apiVersion = '2009-09-19';
+    protected $apiVersion = '2017-04-17';
 
     /**
      * @var CredentialsAbstract
