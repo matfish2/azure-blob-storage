@@ -55,9 +55,9 @@ class BlobClient
      * Blob lease constants
      */
     const LEASE_ACQUIRE = 'acquire';
-    const LEASE_RENEW   = 'renew';
+    const LEASE_RENEW = 'renew';
     const LEASE_RELEASE = 'release';
-    const LEASE_BREAK   = 'break';
+    const LEASE_BREAK = 'break';
 
     /**
      * Maximal blob size (in bytes)
@@ -73,33 +73,33 @@ class BlobClient
      * Blob types
      */
     const BLOBTYPE_BLOCK = 'BlockBlob';
-    const BLOBTYPE_PAGE  = 'PageBlob';
+    const BLOBTYPE_PAGE = 'PageBlob';
 
     /**
      * Put page write options
      */
     const PAGE_WRITE_UPDATE = 'update';
-    const PAGE_WRITE_CLEAR  = 'clear';
+    const PAGE_WRITE_CLEAR = 'clear';
 
-    const URL_DEV_BLOB     = 'http://127.0.0.1:10000';
-    const URL_CLOUD_BLOB   = 'ssl://blob.core.windows.net';
-    const DEVSTORE_ACCOUNT = "devstoreaccount1";
-    const DEVSTORE_KEY     = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
+    const URL_DEV_BLOB = 'http://127.0.0.1:10000';
+    const URL_CLOUD_BLOB = 'ssl://blob.core.windows.net';
+    const DEVSTORE_ACCOUNT = 'devstoreaccount1';
+    const DEVSTORE_KEY = 'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==';
 
-    const RESOURCE_CONTAINER   = "c";
-    const RESOURCE_BLOB        = "b";
+    const RESOURCE_CONTAINER = 'c';
+    const RESOURCE_BLOB = 'b';
 
-    const PERMISSION_READ        = "r";
-    const PERMISSION_WRITE       = "w";
-    const PERMISSION_DELETE      = "d";
-    const PERMISSION_LIST        = "l";
+    const PERMISSION_READ = 'r';
+    const PERMISSION_WRITE = 'w';
+    const PERMISSION_DELETE = 'd';
+    const PERMISSION_LIST = 'l';
 
     /**
      * Stream wrapper clients
      *
      * @var array
      */
-    protected static $wrapperClients = array();
+    protected static $wrapperClients = [];
 
     /**
      * SharedAccessSignature credentials
@@ -142,11 +142,11 @@ class BlobClient
      */
     public function __construct($host = self::URL_DEV_BLOB, $accountName = self::DEVSTORE_ACCOUNT, $accountKey = self::DEVSTORE_KEY)
     {
-        $this->host        = $host;
+        $this->host = $host;
         $this->accountName = $accountName;
-        $this->accountKey  = $accountKey;
+        $this->accountKey = $accountKey;
 
-        $this->credentials                      = new SharedKey($accountName, $accountKey, ($host === self::URL_DEV_BLOB));
+        $this->credentials = new SharedKey($accountName, $accountKey, ($host === self::URL_DEV_BLOB));
         $this->sharedAccessSignatureCredentials = new SharedAccessSignature($accountName, $accountKey, ($host === self::URL_DEV_BLOB));
 
         $this->httpClient = new \Beberlei\AzureBlobStorage\Http\SocketClient;
@@ -167,9 +167,9 @@ class BlobClient
      */
     protected function performRequest(
         $path = '/',
-        $query = array(),
+        $query = [],
         $httpVerb = 'GET',
-        $headers = array(),
+        $headers = [],
         $forTableStorage = false,
         $rawData = null,
         $resourceType = self::RESOURCE_UNKNOWN,
@@ -184,7 +184,7 @@ class BlobClient
             $headers['Content-Type'] = '';
         }
 
-        if (!isset($headers['content-length']) && ($rawData !== null || $httpVerb == "PUT")) {
+        if (!isset($headers['content-length']) && ($rawData !== null || $httpVerb == 'PUT')) {
             $headers['Content-Length'] = strlen((string)$rawData);
         }
         $headers['Expect'] = '';
@@ -204,7 +204,7 @@ class BlobClient
         }
 
         $requestUrl = $this->credentials->signRequestUrl($requestUrl, $resourceType, $requiredPermission);
-        $headers    = $this->credentials->signRequestHeaders(
+        $headers = $this->credentials->signRequestHeaders(
             $httpVerb,
             $path,
             $query,
@@ -271,7 +271,7 @@ class BlobClient
      * @return object Container properties
      * @throws BlobException
      */
-    public function createContainer($containerName = '', $metadata = array())
+    public function createContainer($containerName = '', $metadata = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -279,8 +279,8 @@ class BlobClient
 
         $headers = $this->generateMetadataHeaders($metadata);
 
-        $response = $this->performRequest($containerName, array('restype' => 'container'), 'PUT', $headers, false, null, self::RESOURCE_CONTAINER, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName, ['restype' => 'container'], 'PUT', $headers, false, null, self::RESOURCE_CONTAINER, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -299,9 +299,9 @@ class BlobClient
      * @param array  $metadata      Key/value pairs of meta data
      * @throws BlobException
      */
-    public function createContainerIfNotExists($containerName = '', $metadata = array())
+    public function createContainerIfNotExists($containerName = '', $metadata = [])
     {
-        if ( ! $this->containerExists($containerName)) {
+        if (!$this->containerExists($containerName)) {
             $this->createContainer($containerName, $metadata);
         }
     }
@@ -319,23 +319,24 @@ class BlobClient
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
 
-        $response = $this->performRequest($containerName, array('restype' => 'container', 'comp' => 'acl'), 'GET', array(), false, null, self::RESOURCE_CONTAINER, self::PERMISSION_READ);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName, ['restype' => 'container', 'comp' => 'acl'], 'GET', [], false, null, self::RESOURCE_CONTAINER, self::PERMISSION_READ);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
-        if ($signedIdentifiers == false)  {
+        if ($signedIdentifiers == false) {
             // Only private/blob/container
             $accessType = $response->getHeader(Storage::PREFIX_STORAGE_HEADER . 'blob-public-access');
             if (strtolower($accessType) == 'true') {
                 $accessType = self::ACL_PUBLIC_CONTAINER;
             }
+
             return $accessType;
         }
 
         $result = $this->parseResponse($response);
-        if ( ! $result) {
-            return array();
+        if (!$result) {
+            return [];
         }
 
         $entries = null;
@@ -343,11 +344,11 @@ class BlobClient
             if (count($result->SignedIdentifier) > 1) {
                 $entries = $result->SignedIdentifier;
             } else {
-                $entries = array($result->SignedIdentifier);
+                $entries = [$result->SignedIdentifier];
             }
         }
 
-        $returnValue = array();
+        $returnValue = [];
         foreach ($entries as $entry) {
             $returnValue[] = new SignedIdentifier(
                     $entry->Id,
@@ -368,12 +369,12 @@ class BlobClient
      * @param array $signedIdentifiers Signed identifiers
      * @throws BlobException
      */
-    public function setContainerAcl($containerName = '', $acl = self::ACL_PRIVATE, $signedIdentifiers = array())
+    public function setContainerAcl($containerName = '', $acl = self::ACL_PRIVATE, $signedIdentifiers = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
 
-        $headers = array();
+        $headers = [];
 
         // Acl specified?
         if ($acl != self::ACL_PRIVATE && !is_null($acl) && $acl != '') {
@@ -382,27 +383,30 @@ class BlobClient
 
         $policies = null;
         if (is_array($signedIdentifiers) && count($signedIdentifiers) > 0) {
-            $policies  = '';
+            $policies = '';
             $policies .= '<?xml version="1.0" encoding="utf-8"?>' . "\r\n";
             $policies .= '<SignedIdentifiers>' . "\r\n";
             foreach ($signedIdentifiers as $signedIdentifier) {
                 $policies .= '  <SignedIdentifier>' . "\r\n";
                 $policies .= '    <Id>' . $signedIdentifier->Id . '</Id>' . "\r\n";
                 $policies .= '    <AccessPolicy>' . "\r\n";
-                if ($signedIdentifier->Start != '')
-                $policies .= '      <Start>' . $signedIdentifier->Start . '</Start>' . "\r\n";
-                if ($signedIdentifier->Expiry != '')
-                $policies .= '      <Expiry>' . $signedIdentifier->Expiry . '</Expiry>' . "\r\n";
-                if ($signedIdentifier->Permissions != '')
-                $policies .= '      <Permission>' . $signedIdentifier->Permissions . '</Permission>' . "\r\n";
+                if ($signedIdentifier->Start != '') {
+                    $policies .= '      <Start>' . $signedIdentifier->Start . '</Start>' . "\r\n";
+                }
+                if ($signedIdentifier->Expiry != '') {
+                    $policies .= '      <Expiry>' . $signedIdentifier->Expiry . '</Expiry>' . "\r\n";
+                }
+                if ($signedIdentifier->Permissions != '') {
+                    $policies .= '      <Permission>' . $signedIdentifier->Permissions . '</Permission>' . "\r\n";
+                }
                 $policies .= '    </AccessPolicy>' . "\r\n";
                 $policies .= '  </SignedIdentifier>' . "\r\n";
             }
             $policies .= '</SignedIdentifiers>' . "\r\n";
         }
 
-        $response = $this->performRequest($containerName, array('restype' => 'container', 'comp' => 'acl'), 'PUT', $headers, false, $policies, self::RESOURCE_CONTAINER, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName, ['restype' => 'container', 'comp' => 'acl'], 'PUT', $headers, false, $policies, self::RESOURCE_CONTAINER, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -419,8 +423,8 @@ class BlobClient
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
 
-        $response = $this->performRequest($containerName, array('restype' => 'container'), 'GET', array(), false, null, self::RESOURCE_CONTAINER, self::PERMISSION_READ);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName, ['restype' => 'container'], 'GET', [], false, null, self::RESOURCE_CONTAINER, self::PERMISSION_READ);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -459,7 +463,7 @@ class BlobClient
      * @param array  $additionalHeaders  Additional headers. See http://msdn.microsoft.com/en-us/library/dd179371.aspx for more information.
      * @throws BlobException
      */
-    public function setContainerMetadata($containerName = '', $metadata = array(), $additionalHeaders = array())
+    public function setContainerMetadata($containerName = '', $metadata = [], $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -469,15 +473,15 @@ class BlobClient
             return;
         }
 
-        $headers = array();
+        $headers = [];
         $headers = array_merge($headers, $this->generateMetadataHeaders($metadata));
 
         foreach ($additionalHeaders as $key => $value) {
             $headers[$key] = $value;
         }
 
-        $response = $this->performRequest($containerName, array('restype' => 'container', 'comp' => 'metadata'), 'PUT', $headers, false, null, self::RESOURCE_CONTAINER, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName, ['restype' => 'container', 'comp' => 'metadata'], 'PUT', $headers, false, null, self::RESOURCE_CONTAINER, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -489,18 +493,18 @@ class BlobClient
      * @param array  $additionalHeaders  Additional headers. See http://msdn.microsoft.com/en-us/library/dd179371.aspx for more information.
      * @throws BlobException
      */
-    public function deleteContainer($containerName = '', $additionalHeaders = array())
+    public function deleteContainer($containerName = '', $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
 
-        $headers = array();
+        $headers = [];
         foreach ($additionalHeaders as $key => $value) {
             $headers[$key] = $value;
         }
 
-        $response = $this->performRequest($containerName, array('restype' => 'container'), 'DELETE', $headers, false, null, self::RESOURCE_CONTAINER, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName, ['restype' => 'container'], 'DELETE', $headers, false, null, self::RESOURCE_CONTAINER, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -519,7 +523,7 @@ class BlobClient
     public function listContainers($prefix = null, $maxResults = null, $marker = null, $include = null, $currentResultCount = 0)
     {
         // Build query string
-        $query = array('comp' => 'list');
+        $query = ['comp' => 'list'];
         if (!is_null($prefix)) {
             $query['prefix'] = $prefix;
         }
@@ -533,15 +537,15 @@ class BlobClient
             $query['include'] = $include;
         }
 
-        $response = $this->performRequest('', $query, 'GET', array(), false, null, self::RESOURCE_CONTAINER, self::PERMISSION_LIST);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest('', $query, 'GET', [], false, null, self::RESOURCE_CONTAINER, self::PERMISSION_LIST);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
         $xmlContainers = $this->parseResponse($response)->Containers->Container;
         $xmlMarker = (string)$this->parseResponse($response)->NextMarker;
 
-        $containers = array();
+        $containers = [];
         if (!is_null($xmlContainers)) {
             for ($i = 0; $i < count($xmlContainers); $i++) {
                 $containers[] = new BlobContainer(
@@ -577,7 +581,7 @@ class BlobClient
      * @return object Partial blob properties
      * @throws BlobException
      */
-    public function putBlob($containerName = '', $blobName = '', $localFileName = '', $metadata = array(), $leaseId = null, $additionalHeaders = array())
+    public function putBlob($containerName = '', $blobName = '', $localFileName = '', $metadata = [], $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -605,14 +609,14 @@ class BlobClient
      * @return object Partial blob properties
      * @throws BlobException
      */
-    public function putBlobData($containerName = '', $blobName = '', $data = '', $metadata = array(), $leaseId = null, $additionalHeaders = array())
+    public function putBlobData($containerName = '', $blobName = '', $data = '', $metadata = [], $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
         Assertion::notEmpty($blobName, 'Blob name is not specified.');
         self::assertValidRootContainerBlobName($containerName, $blobName);
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -624,10 +628,10 @@ class BlobClient
 
         $headers[Storage::PREFIX_STORAGE_HEADER . 'blob-type'] = self::BLOBTYPE_BLOCK;
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
-        $response = $this->performRequest($resourceName, array(), 'PUT', $headers, false, $data, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($resourceName, [], 'PUT', $headers, false, $data, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -659,7 +663,7 @@ class BlobClient
      * @return object Partial blob properties
      * @throws BlobException
      */
-    public function putLargeBlob($containerName = '', $blobName = '', $localFileName = '', $metadata = array(), $leaseId = null, $additionalHeaders = array())
+    public function putLargeBlob($containerName = '', $blobName = '', $localFileName = '', $metadata = [], $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -672,9 +676,9 @@ class BlobClient
             return $this->putBlob($containerName, $blobName, $localFileName, $metadata, $leaseId, $additionalHeaders);
         }
 
-        $numberOfParts = ceil( filesize($localFileName) / self::MAX_BLOB_TRANSFER_SIZE );
+        $numberOfParts = ceil(filesize($localFileName) / self::MAX_BLOB_TRANSFER_SIZE);
 
-        $blockIdentifiers = array();
+        $blockIdentifiers = [];
         for ($i = 0; $i < $numberOfParts; $i++) {
             $blockIdentifiers[] = $this->generateBlockId($i);
         }
@@ -724,15 +728,15 @@ class BlobClient
             throw new BlobException('Block size is too big.');
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
-        $response = $this->performRequest($resourceName, array('comp' => 'block', 'blockid' => base64_encode($identifier)), 'PUT', $headers, false, $contents, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($resourceName, ['comp' => 'block', 'blockid' => base64_encode($identifier)], 'PUT', $headers, false, $contents, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -748,7 +752,7 @@ class BlobClient
      * @param array  $additionalHeaders  Additional headers. See http://msdn.microsoft.com/en-us/library/dd179371.aspx for more information.
      * @throws BlobException
      */
-    public function putBlockList($containerName = '', $blobName = '', $blockList = array(), $metadata = array(), $leaseId = null, $additionalHeaders = array())
+    public function putBlockList($containerName = '', $blobName = '', $blockList = [], $metadata = [], $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -761,14 +765,14 @@ class BlobClient
             $blocks .= '  <Latest>' . base64_encode($block) . '</Latest>' . "\n";
         }
 
-        $fileContents = utf8_encode(implode("\n", array(
+        $fileContents = utf8_encode(implode("\n", [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<BlockList>',
             $blocks,
             '</BlockList>'
-        )));
+        ]));
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -778,10 +782,10 @@ class BlobClient
             $headers[$key] = $value;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
-        $response = $this->performRequest($resourceName, array('comp' => 'blocklist'), 'PUT', $headers, false, $fileContents, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($resourceName, ['comp' => 'blocklist'], 'PUT', $headers, false, $fileContents, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -815,40 +819,40 @@ class BlobClient
             $blockListType = 'uncommitted';
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
 
-        $query = array('comp' => 'blocklist', 'blocklisttype' => $blockListType);
+        $query = ['comp' => 'blocklist', 'blocklisttype' => $blockListType];
         if (!is_null($snapshotId)) {
             $query['snapshot'] = $snapshotId;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
         $response = $this->performRequest($resourceName, $query, 'GET', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_READ);
-        if ( ! $response->isSuccessful()) {
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
         $blockList = $this->parseResponse($response);
 
-        $returnValue = array();
+        $returnValue = [];
         if ($blockList->CommittedBlocks) {
             foreach ($blockList->CommittedBlocks->Block as $block) {
-                $returnValue['CommittedBlocks'][] = (object)array(
+                $returnValue['CommittedBlocks'][] = (object)[
                     'Name' => (string)$block->Name,
                     'Size' => (string)$block->Size
-                );
+                ];
             }
         }
-        if ($blockList->UncommittedBlocks)  {
+        if ($blockList->UncommittedBlocks) {
             foreach ($blockList->UncommittedBlocks->Block as $block) {
-                $returnValue['UncommittedBlocks'][] = (object)array(
+                $returnValue['UncommittedBlocks'][] = (object)[
                     'Name' => (string)$block->Name,
                     'Size' => (string)$block->Size
-                );
+                ];
             }
         }
 
@@ -867,7 +871,7 @@ class BlobClient
      * @return object Partial blob properties
      * @throws BlobException
      */
-    public function createPageBlob($containerName = '', $blobName = '', $size = 0, $metadata = array(), $leaseId = null, $additionalHeaders = array())
+    public function createPageBlob($containerName = '', $blobName = '', $size = 0, $metadata = [], $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -878,7 +882,7 @@ class BlobClient
             throw new BlobException('Page blob size must be specified.');
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -892,10 +896,10 @@ class BlobClient
         $headers[Storage::PREFIX_STORAGE_HEADER . 'blob-content-length'] = $size;
         $headers['Content-Length'] = 0;
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
-        $response = $this->performRequest($resourceName, array(), 'PUT', $headers, false, '', self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($resourceName, [], 'PUT', $headers, false, '', self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -928,7 +932,7 @@ class BlobClient
      * @param array  $additionalHeaders  Additional headers. See http://msdn.microsoft.com/en-us/library/dd179371.aspx for more information.
      * @throws BlobException
      */
-    public function putPage($containerName = '', $blobName = '', $startByteOffset = 0, $endByteOffset = 0, $contents = '', $writeMethod = self::PAGE_WRITE_UPDATE, $leaseId = null, $additionalHeaders = array())
+    public function putPage($containerName = '', $blobName = '', $startByteOffset = 0, $endByteOffset = 0, $contents = '', $writeMethod = self::PAGE_WRITE_UPDATE, $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -947,7 +951,7 @@ class BlobClient
             throw new BlobException('Page blob size must not be larger than ' + self::MAX_BLOB_TRANSFER_SIZE . ' bytes.');
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -960,10 +964,10 @@ class BlobClient
 
         $headers[Storage::PREFIX_STORAGE_HEADER . 'page-write'] = $writeMethod;
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
-        $response = $this->performRequest($resourceName, array('comp' => 'page'), 'PUT', $headers, false, $contents, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($resourceName, ['comp' => 'page'], 'PUT', $headers, false, $contents, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -993,7 +997,7 @@ class BlobClient
             throw new BlobException('End byte offset must be a modulus of 512 minus 1.');
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -1002,10 +1006,10 @@ class BlobClient
             $headers['Range'] = 'bytes=' . $startByteOffset . '-' . $endByteOffset;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
-        $response = $this->performRequest($resourceName, array('comp' => 'pagelist'), 'GET', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($resourceName, ['comp' => 'pagelist'], 'GET', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -1014,10 +1018,10 @@ class BlobClient
         if (count($result->PageRange) > 1) {
             $xmlRanges = $result->PageRange;
         } else {
-            $xmlRanges = array($result->PageRange);
+            $xmlRanges = [$result->PageRange];
         }
 
-        $ranges = array();
+        $ranges = [];
         for ($i = 0; $i < count($xmlRanges); $i++) {
             $ranges[] = new PageRegionInstance(
             (int)$xmlRanges[$i]->Start,
@@ -1042,7 +1046,7 @@ class BlobClient
      * @return object Partial blob properties
      * @throws BlobException
      */
-    public function copyBlob($sourceContainerName = '', $sourceBlobName = '', $destinationContainerName = '', $destinationBlobName = '', $metadata = array(), $sourceSnapshotId = null, $destinationLeaseId = null, $additionalHeaders = array())
+    public function copyBlob($sourceContainerName = '', $sourceBlobName = '', $destinationContainerName = '', $destinationBlobName = '', $metadata = [], $sourceSnapshotId = null, $destinationLeaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($sourceContainerName, 'Source container name is not specified.');
         self::assertValidContainerName($sourceContainerName);
@@ -1054,7 +1058,7 @@ class BlobClient
         Assertion::notEmpty($destinationBlobName, 'Destination blob name is not specified.');
         self::assertValidRootContainerBlobName($destinationContainerName, $destinationBlobName);
 
-        $headers = array();
+        $headers = [];
         if (!is_null($destinationLeaseId)) {
             $headers['x-ms-lease-id'] = $destinationLeaseId;
         }
@@ -1070,10 +1074,10 @@ class BlobClient
         }
         $destinationResourceName = self::createResourceName($destinationContainerName, $destinationBlobName);
 
-        $headers["x-ms-copy-source"] = '/' . $this->accountName . '/' . $sourceResourceName;
+        $headers['x-ms-copy-source'] = '/' . $this->accountName . '/' . $sourceResourceName;
 
-        $response = $this->performRequest($destinationResourceName, array(), 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($destinationResourceName, [], 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -1104,7 +1108,7 @@ class BlobClient
      * @param array  $additionalHeaders  Additional headers. See http://msdn.microsoft.com/en-us/library/dd179371.aspx for more information.
      * @throws BlobException
      */
-    public function getBlob($containerName = '', $blobName = '', $localFileName = '', $snapshotId = null, $leaseId = null, $additionalHeaders = array())
+    public function getBlob($containerName = '', $blobName = '', $localFileName = '', $snapshotId = null, $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -1125,18 +1129,18 @@ class BlobClient
      * @return mixed Blob contents
      * @throws BlobException
      */
-    public function getBlobData($containerName = '', $blobName = '', $snapshotId = null, $leaseId = null, $additionalHeaders = array())
+    public function getBlobData($containerName = '', $blobName = '', $snapshotId = null, $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
         Assertion::notEmpty($blobName, 'Blob name is not specified.');
 
-        $query = array();
+        $query = [];
         if (!is_null($snapshotId)) {
             $query['snapshot'] = $snapshotId;
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -1144,10 +1148,10 @@ class BlobClient
             $headers[$key] = $value;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
         $response = $this->performRequest($resourceName, $query, 'GET', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_READ);
-        if ( ! $response->isSuccessful()) {
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -1165,19 +1169,19 @@ class BlobClient
      * @return BlobInstance
      * @throws BlobException
      */
-    public function getBlobInstance($containerName = '', $blobName = '', $snapshotId = null, $leaseId = null, $additionalHeaders = array())
+    public function getBlobInstance($containerName = '', $blobName = '', $snapshotId = null, $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
         Assertion::notEmpty($blobName, 'Blob name is not specified.');
         self::assertValidRootContainerBlobName($containerName, $blobName);
 
-        $query = array();
+        $query = [];
         if (!is_null($snapshotId)) {
             $query['snapshot'] = $snapshotId;
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -1185,10 +1189,10 @@ class BlobClient
             $headers[$key] = $value;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
         $response = $this->performRequest($resourceName, $query, 'HEAD', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_READ);
-        if ( ! $response->isSuccessful()) {
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -1265,7 +1269,7 @@ class BlobClient
      * @param array  $additionalHeaders  Additional headers. See http://msdn.microsoft.com/en-us/library/dd179371.aspx for more information.
      * @throws BlobException
      */
-    public function setBlobMetadata($containerName = '', $blobName = '', $metadata = array(), $leaseId = null, $additionalHeaders = array())
+    public function setBlobMetadata($containerName = '', $blobName = '', $metadata = [], $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -1276,7 +1280,7 @@ class BlobClient
             return;
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -1286,8 +1290,8 @@ class BlobClient
             $headers[$key] = $value;
         }
 
-        $response = $this->performRequest($containerName . '/' . $blobName, array('comp' => 'metadata'), 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName . '/' . $blobName, ['comp' => 'metadata'], 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -1303,7 +1307,7 @@ class BlobClient
      * @param array  $additionalHeaders  Additional headers. See http://msdn.microsoft.com/en-us/library/dd179371.aspx for more information.
      * @throws BlobException
      */
-    public function setBlobProperties($containerName = '', $blobName = '', $leaseId = null, array $additionalHeaders = array())
+    public function setBlobProperties($containerName = '', $blobName = '', $leaseId = null, array $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -1311,7 +1315,7 @@ class BlobClient
         self::assertValidRootContainerBlobName($containerName, $blobName);
         Assertion::notEmpty($additionalHeaders, 'No additional headers are specified.');
 
-        $headers = array();
+        $headers = [];
 
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
@@ -1321,8 +1325,8 @@ class BlobClient
             $headers[$key] = $value;
         }
 
-        $response = $this->performRequest($containerName . '/' . $blobName, array('comp' => 'properties'), 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName . '/' . $blobName, ['comp' => 'properties'], 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -1357,19 +1361,19 @@ class BlobClient
      * @param array  $additionalHeaders  Additional headers. See http://msdn.microsoft.com/en-us/library/dd179371.aspx for more information.
      * @throws BlobException
      */
-    public function deleteBlob($containerName = '', $blobName = '', $snapshotId = null, $leaseId = null, $additionalHeaders = array())
+    public function deleteBlob($containerName = '', $blobName = '', $snapshotId = null, $leaseId = null, $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
         Assertion::notEmpty($blobName, 'Blob name is not specified.');
         self::assertValidRootContainerBlobName($containerName, $blobName);
 
-        $query = array();
+        $query = [];
         if (!is_null($snapshotId)) {
             $query['snapshot'] = $snapshotId;
         }
 
-        $headers = array();
+        $headers = [];
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
@@ -1377,10 +1381,10 @@ class BlobClient
             $headers[$key] = $value;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
         $response = $this->performRequest($resourceName, $query, 'DELETE', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
     }
@@ -1395,22 +1399,22 @@ class BlobClient
      * @return string Date/Time value representing the snapshot identifier.
      * @throws BlobException
      */
-    public function snapshotBlob($containerName = '', $blobName = '', $metadata = array(), $additionalHeaders = array())
+    public function snapshotBlob($containerName = '', $blobName = '', $metadata = [], $additionalHeaders = [])
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
         Assertion::notEmpty($blobName, 'Blob name is not specified.');
         self::assertValidRootContainerBlobName($containerName, $blobName);
 
-        $headers = array();
+        $headers = [];
         foreach ($additionalHeaders as $key => $value) {
             $headers[$key] = $value;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
-        $response = $this->performRequest($resourceName, array('comp' => 'snapshot'), 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($resourceName, ['comp' => 'snapshot'], 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -1434,16 +1438,16 @@ class BlobClient
         Assertion::notEmpty($blobName, 'Blob name is not specified.');
         self::assertValidRootContainerBlobName($containerName, $blobName);
 
-        $headers = array();
+        $headers = [];
         $headers['x-ms-lease-action'] = strtolower($leaseAction);
         if (!is_null($leaseId)) {
             $headers['x-ms-lease-id'] = $leaseId;
         }
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
-        $response = $this->performRequest($resourceName, array('comp' => 'lease'), 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($resourceName, ['comp' => 'lease'], 'PUT', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
@@ -1473,7 +1477,7 @@ class BlobClient
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
 
-        $query = array('restype' => 'container', 'comp' => 'list');
+        $query = ['restype' => 'container', 'comp' => 'list'];
         if (!is_null($prefix)) {
             $query[] = 'prefix=' . $prefix;
         }
@@ -1490,14 +1494,19 @@ class BlobClient
             $query['include'] = $include;
         }
 
-        $response = $this->performRequest($containerName, $query, 'GET', array(), false, null, self::RESOURCE_BLOB, self::PERMISSION_LIST);
-        if ( ! $response->isSuccessful()) {
+        $response = $this->performRequest($containerName, $query, 'GET', [], false, null, self::RESOURCE_BLOB, self::PERMISSION_LIST);
+        if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
 
-        $blobs = array();
+        $blobs = [];
 
-        $xmlBlobs = $this->parseResponse($response)->Blobs->Blob;
+        try {
+            $xmlBlobs = $this->parseResponse($response)->Blobs->Blob;
+        } catch (\ErrorException $e) {
+            \Log::error("Failed to get blob {$prefix}. Could not parse response:" . json_encode($response));
+        }
+
         if (!is_null($xmlBlobs)) {
             for ($i = 0; $i < count($xmlBlobs); $i++) {
                 $properties = (array)$xmlBlobs[$i]->Properties;
@@ -1577,7 +1586,7 @@ class BlobClient
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
 
-        $resourceName = self::createResourceName($containerName , $blobName);
+        $resourceName = self::createResourceName($containerName, $blobName);
 
         return $this->getBaseUrl() . '/' . $resourceName . '?' .
             $this->sharedAccessSignatureCredentials->createSignedQueryString(
@@ -1600,6 +1609,7 @@ class BlobClient
     public function registerAsClient($name)
     {
         self::$wrapperClients[$name] = $this;
+
         return $this;
     }
 
@@ -1612,6 +1622,7 @@ class BlobClient
     public function unregisterAsClient($name)
     {
         unset(self::$wrapperClients[$name]);
+
         return $this;
     }
 
@@ -1681,7 +1692,7 @@ class BlobClient
             return true;
         }
 
-        if (preg_match("/^[a-z0-9][a-z0-9-]*$/", $containerName) === 0) {
+        if (preg_match('/^[a-z0-9][a-z0-9-]*$/', $containerName) === 0) {
             return false;
         }
 
@@ -1729,7 +1740,7 @@ class BlobClient
     {
         $xml = $this->parseResponse($response);
         if ($xml && $xml->Message) {
-            return "[" . $response->getStatusCode() . "] " . (string)$xml->Message ."\n" . (string)$xml->AuthenticationErrorDetail;
+            return '[' . $response->getStatusCode() . '] ' . (string)$xml->Message ."\n" . (string)$xml->AuthenticationErrorDetail;
         } else {
             return $alternativeError;
         }
@@ -1751,9 +1762,9 @@ class BlobClient
         return $returnValue;
     }
 
-    protected function generateMetadataHeaders(array $metadata = array())
+    protected function generateMetadataHeaders(array $metadata = [])
     {
-        $headers = array();
+        $headers = [];
         foreach ($metadata as $key => $value) {
             if (strpos($value, "\r") !== false || strpos($value, "\n") !== false) {
                 throw new BlobException('Metadata cannot contain newline characters.');
@@ -1763,14 +1774,15 @@ class BlobClient
                 throw new BlobException('Metadata name does not adhere to metadata naming conventions. See http://msdn.microsoft.com/en-us/library/aa664670(VS.71).aspx for more information.');
             }
 
-            $headers["x-ms-meta-" . strtolower($key)] = $value;
+            $headers['x-ms-meta-' . strtolower($key)] = $value;
         }
+
         return $headers;
     }
 
     public static function isValidMetadataName($metadataName = '')
     {
-        if (preg_match("/^[a-zA-Z0-9_@][a-zA-Z0-9_]*$/", $metadataName) === 0) {
+        if (preg_match('/^[a-zA-Z0-9_@][a-zA-Z0-9_]*$/', $metadataName) === 0) {
             return false;
         }
 
@@ -1824,20 +1836,21 @@ class BlobClient
      * @param array $headers HTTP headers containing metadata
      * @return array
      */
-    protected function parseMetadataHeaders($headers = array())
+    protected function parseMetadataHeaders($headers = [])
     {
         // Validate
         if (!is_array($headers)) {
-            return array();
+            return [];
         }
 
         // Return metadata
-        $metadata = array();
+        $metadata = [];
         foreach ($headers as $key => $value) {
-            if (substr(strtolower($key), 0, 10) == "x-ms-meta-") {
-                $metadata[str_replace("x-ms-meta-", '', strtolower($key))] = $value;
+            if (substr(strtolower($key), 0, 10) == 'x-ms-meta-') {
+                $metadata[str_replace('x-ms-meta-', '', strtolower($key))] = $value;
             }
         }
+
         return $metadata;
     }
 
@@ -1854,6 +1867,6 @@ class BlobClient
             return get_object_vars($element->Metadata);
         }
 
-        return array();
+        return [];
     }
 }
