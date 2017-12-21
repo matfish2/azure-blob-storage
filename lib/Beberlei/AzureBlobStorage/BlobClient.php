@@ -1505,6 +1505,8 @@ class BlobClient
             $xmlBlobs = $this->parseResponse($response)->Blobs->Blob;
         } catch (\ErrorException $e) {
             \Log::error("Failed to get blob {$prefix}. Could not parse response:" . json_encode($response));
+            var_error_log($response);
+
             return [];
         }
 
@@ -1870,4 +1872,13 @@ class BlobClient
 
         return [];
     }
+}
+
+function var_error_log($object = null)
+{
+    ob_start();                    // start buffer capture
+    var_dump($object);           // dump the values
+    $contents = ob_get_contents(); // put the buffer into a variable
+    ob_end_clean();                // end capture
+    \Log::error($contents);        // log contents of the result of var_dump( $object )
 }
