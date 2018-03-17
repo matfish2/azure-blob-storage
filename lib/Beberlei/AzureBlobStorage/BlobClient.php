@@ -1384,6 +1384,7 @@ class BlobClient
         $resourceName = self::createResourceName($containerName, $blobName);
 
         $response = $this->performRequest($resourceName, $query, 'DELETE', $headers, false, null, self::RESOURCE_BLOB, self::PERMISSION_WRITE);
+
         if (!$response->isSuccessful()) {
             throw new BlobException($this->getErrorMessage($response, 'Resource could not be accessed.'));
         }
@@ -1472,7 +1473,25 @@ class BlobClient
      * @return array
      * @throws BlobException
      */
-    public function listBlobs($containerName = '', $prefix = '', $delimiter = '', $maxResults = null, $marker = null, $include = null, $currentResultCount = 0)
+    public function listBlobNames($containerName = '', $prefix = '', $delimiter = '', $maxResults = null, $marker = null, $include = null, $currentResultCount = 0)
+    {
+        $res = [];
+        $response = $this->listBlobs($containerName, $prefix, $delimiter, $maxResults, $marker, $include, $currentResultCount, false);
+
+        if ($response) {
+            $blobNames = $response->xpath('//Blob/Name');
+
+            $res = array_map(function ($obj) {
+                return (string) ($obj);
+            }, $blobNames);
+        } elseif ($response === false) {
+            return false;
+        }
+
+        return $res;
+    }
+
+    public function listBlobs($containerName = '', $prefix = '', $delimiter = '', $maxResults = null, $marker = null, $include = null, $currentResultCount = 0, $parseResponse = true)
     {
         Assertion::notEmpty($containerName, 'Container name is not specified');
         self::assertValidContainerName($containerName);
@@ -1500,17 +1519,16 @@ class BlobClient
         }
 
         $blobs = [];
-
         try {
-            $xmlBlobs = $this->parseResponse($response)->Blobs->Blob;
+            $xmlBlobs = $this->parseResponse($response)->Blobs;
         } catch (\ErrorException $e) {
             \Log::error("Failed to get blob {$prefix}. Could not parse response:" . json_encode($response));
-            \Log::error('Raw Response:');
-            var_error_log($response);
-            \Log::error('Parsed Response:');
-            var_error_log($this->parseResponse($response));
 
             return [];
+        }
+
+        if (!$parseResponse || $xmlBlobs === false) {
+            return $xmlBlobs;
         }
 
         if (!is_null($xmlBlobs)) {
